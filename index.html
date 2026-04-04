@@ -132,6 +132,46 @@
 
   @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   @keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
+
+  /* SAVE INDICATOR */
+  #save-indicator {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    background: var(--ink);
+    color: #5ddb8f;
+    font-family: 'DM Mono', monospace;
+    font-size: 0.72rem;
+    padding: 8px 14px;
+    border-radius: 20px;
+    border: 1px solid #5ddb8f44;
+    opacity: 0;
+    transform: translateY(8px);
+    transition: opacity 0.25s, transform 0.25s;
+    pointer-events: none;
+    z-index: 999;
+    letter-spacing: 0.05em;
+  }
+  #save-indicator.visible { opacity: 1; transform: translateY(0); }
+
+  /* RESTORE BANNER */
+  #restore-banner {
+    display: none;
+    background: #e8f5e0;
+    border: 1.5px solid #b8ddb0;
+    border-radius: 10px;
+    padding: 12px 16px;
+    margin-bottom: 14px;
+    font-size: 0.85rem;
+    color: #2d5a20;
+    align-items: center;
+    gap: 10px;
+  }
+  #restore-banner.show { display: flex; animation: slideIn 0.3s ease; }
+  #restore-banner strong { flex: 1; }
+  #restore-banner button { background: #2d7a4f; color: white; border: none; border-radius: 7px; padding: 6px 12px; font-size: 0.78rem; font-weight: 600; cursor: pointer; font-family: 'DM Sans', sans-serif; white-space: nowrap; }
+  #restore-banner button:hover { background: #235f3c; }
+
 </style>
 </head>
 <body>
@@ -142,6 +182,12 @@
 </header>
 
 <main>
+
+  <div id="restore-banner">
+    <strong>💾 You have a saved session — want to pick up where you left off?</strong>
+    <button onclick="restoreSession()">Restore</button>
+    <button onclick="dismissRestore()" style="background:transparent;color:#2d5a20;border:1px solid #b8ddb0;">Start fresh</button>
+  </div>
 
   <!-- SETUP -->
   <div id="setup-screen">
@@ -204,7 +250,10 @@
     <div class="card">
       <div class="section-header">
         <div class="card-title" style="margin:0">📋 Expenses <span id="exp-count" class="total-tag">0</span></div>
-        <button class="btn btn-ghost" onclick="clearAll()">Clear all</button>
+        <div style="display:flex;gap:8px;align-items:center">
+          <button class="btn btn-ghost" id="csv-btn" onclick="downloadCSV()" title="Download as CSV">⬇ CSV</button>
+          <button class="btn btn-ghost" onclick="clearAll()">Clear all</button>
+        </div>
       </div>
       <div id="expenses-list">
         <div class="expense-empty"><span class="big">🧾</span>No expenses yet — add one above!</div>
@@ -224,6 +273,7 @@
   </div>
 
 </main>
+<div id="save-indicator">✓ Saved</div>
 
 <script>
   const PALETTE = [
@@ -242,6 +292,39 @@
   let names = [];
   let expenses = [];
   let uidCounter = 0;
+
+  const LS_KEY = 'fairshare_v1';
+
+  function saveState() {
+    try {
+      localStorage.setItem(LS_KEY, JSON.stringify({ names, expenses }));
+      flashSaved();
+    } catch(e) {}
+  }
+
+  function loadState() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return false;
+      const data = JSON.parse(raw);
+      if (!data.names || data.names.length < 2) return false;
+      names = data.names;
+      expenses = data.expenses || [];
+      return true;
+    } catch(e) { return false; }
+  }
+
+  function clearState() {
+    try { localStorage.removeItem(LS_KEY); } catch(e) {}
+  }
+
+  function flashSaved() {
+    const el = document.getElementById('save-indicator');
+    if (!el) return;
+    el.classList.add('visible');
+    clearTimeout(el._t);
+    el._t = setTimeout(() => el.classList.remove('visible'), 1800);
+  }
 
   function col(i) { return PALETTE[i % PALETTE.length]; }
 
@@ -316,8 +399,29 @@
     el._t = setTimeout(() => { el.textContent = '\u00a0'; }, 2200);
   }
 
-  // Seed 3 rows
-  addPersonInput(); addPersonInput(); addPersonInput();
+  // ── BOOT: auto-restore or show restore banner ──
+  (function boot() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) { addPersonInput(); addPersonInput(); addPersonInput(); return; }
+      const data = JSON.parse(raw);
+      if (!data.names || data.names.length < 2) { addPersonInput(); addPersonInput(); addPersonInput(); return; }
+      // Show restore banner
+      document.getElementById('restore-banner').classList.add('show');
+      addPersonInput(); addPersonInput(); addPersonInput();
+    } catch(e) { addPersonInput(); addPersonInput(); addPersonInput(); }
+  })();
+
+  function restoreSession() {
+    if (!loadState()) return;
+    document.getElementById('restore-banner').classList.remove('show');
+    initApp();
+  }
+
+  function dismissRestore() {
+    clearState();
+    document.getElementById('restore-banner').classList.remove('show');
+  }
 
   // ── START ──
   function startApp() {
@@ -400,12 +504,14 @@
     rebuildSplitControls();
     renderExpenses();
     renderSettlement();
+    saveState();
   }
 
   function removeExpense(id) {
     expenses = expenses.filter(e => e.id !== id);
     renderExpenses();
     renderSettlement();
+    saveState();
   }
 
   // ── RENDER EXPENSES ──
@@ -484,18 +590,106 @@
 
   function clearAll() {
     if (!expenses.length) return;
-    if (confirm('Remove all expenses?')) { expenses = []; renderExpenses(); renderSettlement(); }
+    if (confirm('Remove all expenses?')) { expenses = []; renderExpenses(); renderSettlement(); saveState(); }
   }
 
   function resetApp() {
     if (!confirm('Reset everything and change members?')) return;
     expenses = []; names = [];
+    clearState();
     document.getElementById('app-screen').style.display = 'none';
     document.getElementById('setup-screen').style.display = 'block';
     document.getElementById('header-sub').textContent = 'ROOM EDITION';
     document.getElementById('roommate-inputs').innerHTML = '';
     uidCounter = 0;
     addPersonInput(); addPersonInput(); addPersonInput();
+  }
+
+  // ── DOWNLOAD CSV ──
+  function downloadCSV() {
+    if (!expenses.length) { showWarn('No expenses to export!'); return; }
+
+    // ── Sheet 1: Expenses ──
+    const expHeaders = ['#', 'Description', 'Total Amount', 'Paid By', ...names.map(n => `${n}'s Share`)];
+    const expRows = expenses.map((e, idx) => {
+      const shares = names.map((_, i) => e.splits[i] != null ? e.splits[i].toFixed(2) : '0.00');
+      return [idx + 1, csvCell(e.desc), e.amount.toFixed(2), csvCell(names[e.payer]), ...shares];
+    });
+
+    // ── Sheet 2: Balances ──
+    const bal = new Array(names.length).fill(0);
+    expenses.forEach(e => {
+      bal[e.payer] += e.amount;
+      Object.entries(e.splits).forEach(([i, v]) => bal[+i] -= v);
+    });
+    const balHeaders = ['Person', 'Net Balance ($)', 'Status'];
+    const balRows = names.map((n, i) => {
+      const v = bal[i];
+      const status = v > 0.005 ? 'Gets back' : v < -0.005 ? 'Owes' : 'Settled';
+      return [csvCell(n), (v >= 0 ? '+' : '') + v.toFixed(2), status];
+    });
+
+    // ── Sheet 3: Settlements ──
+    const debtors = [], creditors = [];
+    names.forEach((_, i) => {
+      const v = Math.round(bal[i] * 100) / 100;
+      if (v < -0.005) debtors.push({ i, amt: -v });
+      else if (v > 0.005) creditors.push({ i, amt: v });
+    });
+    debtors.sort((a, b) => b.amt - a.amt);
+    creditors.sort((a, b) => b.amt - a.amt);
+    const txns = [], d = debtors.map(x => ({...x})), c = creditors.map(x => ({...x}));
+    let di = 0, ci = 0;
+    while (di < d.length && ci < c.length) {
+      const pay = Math.min(d[di].amt, c[ci].amt);
+      if (pay > 0.005) txns.push({ from: d[di].i, to: c[ci].i, amt: pay });
+      d[di].amt -= pay; c[ci].amt -= pay;
+      if (d[di].amt < 0.005) di++;
+      if (c[ci].amt < 0.005) ci++;
+    }
+    const settlHeaders = ['From', 'To', 'Amount ($)'];
+    const settlRows = txns.length
+      ? txns.map(t => [csvCell(names[t.from]), csvCell(names[t.to]), t.amt.toFixed(2)])
+      : [['—', '—', 'All settled']];
+
+    // ── Assemble CSV ──
+    const lines = [
+      `FairShare Export — ${new Date().toLocaleDateString()}`,
+      `Members: ${names.join(', ')}`,
+      '',
+      '--- EXPENSES ---',
+      expHeaders.join(','),
+      ...expRows.map(r => r.join(',')),
+      '',
+      '--- NET BALANCES ---',
+      balHeaders.join(','),
+      ...balRows.map(r => r.join(',')),
+      '',
+      '--- SETTLEMENTS ---',
+      settlHeaders.join(','),
+      ...settlRows.map(r => r.join(','))
+    ];
+
+    const blob = new Blob([lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `fairshare-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+
+    // Flash confirmation
+    const btn = document.getElementById('csv-btn');
+    const orig = btn.textContent;
+    btn.textContent = '✓ Downloaded!';
+    btn.style.color = 'var(--green, #2d7a4f)';
+    setTimeout(() => { btn.textContent = orig; btn.style.color = ''; }, 2000);
+  }
+
+  function csvCell(val) {
+    const s = String(val);
+    return s.includes(',') || s.includes('"') || s.includes('\n')
+      ? `"${s.replace(/"/g, '""')}"` : s;
   }
 
   function esc(s) { return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
