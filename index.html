@@ -338,6 +338,9 @@
       if (!data.names || data.names.length < 2) return false;
       names = data.names;
       expenses = data.expenses || [];
+      if (normalizeLegacyEqualSplits()) {
+        localStorage.setItem(LS_KEY, JSON.stringify({ names, expenses }));
+      }
       return true;
     } catch(e) { return false; }
   }
@@ -359,7 +362,7 @@
   function fromCents(cents) { return cents / 100; }
   function normalizeCents(cents) { return Math.abs(cents) <= 0 ? 0 : cents; }
 
-  function allocateByWeights(totalCents, weights) {
+  function allocateByWeights(totalCents, weights, tieStart = 0) {
     const active = weights
       .map((w, i) => ({ i, w: Number(w) || 0 }))
       .filter(x => x.w > 0);
@@ -381,7 +384,13 @@
     });
 
     let remaining = totalCents - used;
-    fractions.sort((a, b) => b.rem - a.rem || a.i - b.i);
+    const n = names.length || 1;
+    fractions.sort((a, b) => {
+      if (b.rem !== a.rem) return b.rem - a.rem;
+      const ar = ((a.i - tieStart) % n + n) % n;
+      const br = ((b.i - tieStart) % n + n) % n;
+      return ar - br;
+    });
     for (let k = 0; k < remaining; k++) {
       base[fractions[k % fractions.length].i] += 1;
     }
@@ -391,6 +400,35 @@
       splits[i] = fromCents(base[i]);
     });
     return splits;
+  }
+
+  // Rebalance old equal-split records that were biased by fixed tie-breaking.
+  function normalizeLegacyEqualSplits() {
+    let changed = false;
+    expenses.forEach(e => {
+      if (!e || !e.splits) return;
+      const participants = Object.keys(e.splits).map(Number);
+      if (participants.length !== names.length) return;
+
+      const splitCents = names.map((_, i) => toCents(e.splits[i] != null ? e.splits[i] : 0));
+      if (splitCents.some(v => v <= 0)) return;
+
+      const min = Math.min(...splitCents);
+      const max = Math.max(...splitCents);
+      if (max - min > 1) return;
+
+      const amountCents = toCents(e.amount);
+      const sumCents = splitCents.reduce((a, b) => a + b, 0);
+      if (sumCents !== amountCents) return;
+
+      const normalized = allocateByWeights(amountCents, names.map(() => 1), Number(e.payer) || 0);
+      const same = names.every((_, i) => toCents(normalized[i] != null ? normalized[i] : 0) === splitCents[i]);
+      if (!same) {
+        e.splits = normalized;
+        changed = true;
+      }
+    });
+    return changed;
   }
 
   function buildPairwiseSettlements() {
@@ -573,17 +611,17 @@
     let splits = {};
 
     if (splitType === 'equal') {
-      splits = allocateByWeights(amountCents, names.map(() => 1));
+      splits = allocateByWeights(amountCents, names.map(() => 1), payer);
     } else if (splitType === 'shares') {
       const raw = names.map((_, i) => parseFloat(document.getElementById(`share${i}`).value) || 0);
       const total = raw.reduce((a, b) => a + b, 0);
       if (total <= 0) { alert('Shares must be > 0'); return; }
-      splits = allocateByWeights(amountCents, raw);
+      splits = allocateByWeights(amountCents, raw, payer);
     } else {
       const sel = names.map((_, i) => document.getElementById(`ptog${i}`).checked ? i : -1).filter(x => x >= 0);
       if (!sel.length) { alert('Select at least 1 person!'); return; }
       const weightMap = names.map((_, i) => sel.includes(i) ? 1 : 0);
-      splits = allocateByWeights(amountCents, weightMap);
+      splits = allocateByWeights(amountCents, weightMap, payer);
     }
 
     expenses.push({ desc, amount: fromCents(amountCents), payer, splits, id: Date.now() });
