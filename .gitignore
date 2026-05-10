@@ -21,3 +21,8 @@ temp/
 # Local environment
 .env
 .env.*
+serviceAccountKey.json
+server/serviceAccountKey.json
+
+# Generated Firebase browser config
+js/firebase-config.js

@@ -11,6 +11,10 @@
       addExpenseBtn: documentRef.getElementById('add-expense-btn'),
       addPersonBtn: documentRef.getElementById('add-person-btn'),
       amount: documentRef.getElementById('amount'),
+      accountBar: documentRef.getElementById('account-bar'),
+      accountName: documentRef.getElementById('account-name'),
+      authScreen: documentRef.getElementById('auth-screen'),
+      authStatus: documentRef.getElementById('auth-status'),
       balanceGrid: documentRef.getElementById('balance-grid'),
       clearAllBtn: documentRef.getElementById('clear-all-btn'),
       csvBtn: documentRef.getElementById('csv-btn'),
@@ -31,6 +35,8 @@
       setupScreen: documentRef.getElementById('setup-screen'),
       sharesGrid: documentRef.getElementById('shares-grid'),
       sharesSection: documentRef.getElementById('shares-section'),
+      googleSignInBtn: documentRef.getElementById('google-sign-in-btn'),
+      signOutBtn: documentRef.getElementById('sign-out-btn'),
       splitType: documentRef.getElementById('split-type'),
       startBtn: documentRef.getElementById('start-btn'),
       warnMsg: documentRef.getElementById('warn-msg'),
@@ -62,9 +68,19 @@
 
     function flashSaved() {
       if (!dom.saveIndicator) return;
+      dom.saveIndicator.classList.remove('error');
+      dom.saveIndicator.innerHTML = `<span>${symbols.check}</span> Saved`;
       dom.saveIndicator.classList.add('visible');
       clearTimeout(saveTimer);
       saveTimer = setTimeout(() => dom.saveIndicator.classList.remove('visible'), 1800);
+    }
+
+    function flashSaveError() {
+      if (!dom.saveIndicator) return;
+      dom.saveIndicator.classList.add('error', 'visible');
+      dom.saveIndicator.textContent = 'Save failed';
+      clearTimeout(saveTimer);
+      saveTimer = setTimeout(() => dom.saveIndicator.classList.remove('visible'), 2400);
     }
 
     function showWarn(msg) {
@@ -94,14 +110,43 @@
 
     function showSetup() {
       documentRef.body.classList.remove('app-active');
+      documentRef.body.classList.add('signed-in');
+      documentRef.body.classList.remove('signed-out', 'auth-loading');
       dom.setupScreen.style.display = 'block';
       dom.headerSub.textContent = 'ROOM EDITION';
     }
 
     function showApp(names) {
       documentRef.body.classList.add('app-active');
+      documentRef.body.classList.add('signed-in');
+      documentRef.body.classList.remove('signed-out', 'auth-loading');
       dom.setupScreen.style.display = 'none';
       dom.headerSub.textContent = `ROOM EDITION ${symbols.separator} ${names.length} PEOPLE`;
+    }
+
+    function showSignedOut(message) {
+      documentRef.body.classList.remove('app-active', 'signed-in', 'auth-loading');
+      documentRef.body.classList.add('signed-out');
+      dom.setupScreen.style.display = 'none';
+      dom.headerSub.textContent = 'ROOM EDITION';
+      dom.accountBar.hidden = true;
+      dom.googleSignInBtn.disabled = false;
+      dom.authStatus.textContent = message || emptyText;
+    }
+
+    function showAuthLoading(message) {
+      documentRef.body.classList.remove('app-active', 'signed-in', 'signed-out');
+      documentRef.body.classList.add('auth-loading');
+      dom.setupScreen.style.display = 'none';
+      dom.headerSub.textContent = 'ROOM EDITION';
+      dom.accountBar.hidden = true;
+      dom.googleSignInBtn.disabled = true;
+      dom.authStatus.textContent = message || 'Checking sign-in...';
+    }
+
+    function showAccount(label) {
+      dom.accountName.textContent = label;
+      dom.accountBar.hidden = false;
     }
 
     function renderMembers(names) {
@@ -203,6 +248,7 @@
       applyStaticSymbols,
       dom,
       esc,
+      flashSaveError,
       flashSaved,
       renderExpenses,
       renderMembers,
@@ -212,7 +258,10 @@
       setPersonColors,
       setSplitTypeVisibility,
       shake,
+      showAccount,
       showApp,
+      showAuthLoading,
+      showSignedOut,
       showSetup,
       showWarn,
     };

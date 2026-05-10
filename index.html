@@ -7,24 +7,35 @@
   <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Mono:wght@400;500&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="css/styles.css">
   <script src="js/config.js" defer></script>
+  <script src="js/firebase-config.js" defer></script>
   <script src="js/core.js" defer></script>
   <script src="js/storage.js" defer></script>
   <script src="js/dom.js" defer></script>
   <script src="js/csv.js" defer></script>
+  <script src="js/firebase-service.js" type="module"></script>
   <script src="js/app.js" defer></script>
 </head>
 <body>
 
 <header>
-  <h1>Fair<span>Share</span></h1>
-  <p id="header-sub">ROOM EDITION</p>
+  <div class="brand-lockup">
+    <h1>Fair<span>Share</span></h1>
+    <p id="header-sub">ROOM EDITION</p>
+  </div>
+  <div id="account-bar" class="account-bar" hidden>
+    <span id="account-name"></span>
+    <button id="sign-out-btn" class="account-btn" type="button">Sign out</button>
+  </div>
 </header>
 
 <main>
-  <div id="restore-banner">
-    <strong><span class="js-symbol" data-symbol="save"></span> You have a saved session - want to pick up where you left off?</strong>
-    <button id="restore-btn" type="button">Restore</button>
-    <button id="dismiss-restore-btn" class="restore-secondary-btn" type="button">Start fresh</button>
+  <div id="auth-screen">
+    <div class="card auth-card">
+      <div class="card-title"><span class="js-symbol" data-symbol="save"></span> Sign in to FairShare <span class="badge">CLOUD</span></div>
+      <p class="setup-intro">Use Google to save this room's expenses securely in Firestore.</p>
+      <p class="warn-msg auth-status" id="auth-status"></p>
+      <button class="btn btn-primary" id="google-sign-in-btn" type="button">Continue with Google</button>
+    </div>
   </div>
 
   <div id="setup-screen">

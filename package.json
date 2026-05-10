@@ -1,11 +1,12 @@
 {
   "name": "fairshare-room-edition",
   "version": "1.0.0",
-  "description": "A local-first roommate expense splitter built with vanilla HTML, CSS, and JavaScript.",
+  "description": "A Firebase-backed roommate expense splitter built with vanilla HTML, CSS, and JavaScript.",
   "private": true,
   "scripts": {
+    "build:pages": "node scripts/build-pages.js",
     "check": "node tests/check-syntax.js",
-    "test": "node tests/core.test.js",
+    "test": "node tests/core.test.js && node tests/storage.test.js",
     "verify": "npm run check && npm test"
   },
   "keywords": [
@@ -16,5 +17,8 @@
     "csv-export"
   ],
   "author": "Pavan Kalyan",
-  "license": "MIT"
+  "license": "MIT",
+  "devDependencies": {
+    "terser": "^5.47.1"
+  }
 }

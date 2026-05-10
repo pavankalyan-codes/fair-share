@@ -2,26 +2,35 @@
   const config = root.FairShareConfig;
   const core = root.FairShareCore;
   const csv = root.FairShareCsv;
-  const storage = root.FairShareStorage.createStorage(
-    root.localStorage,
-    config.storageKey,
-    core.normalizeLegacyEqualSplits,
-  );
 
   let names = [];
   let expenses = [];
   let uidCounter = 0;
   let view = null;
+  let storage = null;
+  let firebase = null;
 
   function state() {
     return { expenses, names };
   }
 
-  function saveState() {
+  async function saveState() {
+    if (!storage) return;
     try {
-      storage.save(state());
+      await storage.save(state());
       view.flashSaved();
-    } catch (e) {}
+    } catch (e) {
+      view.flashSaveError();
+    }
+  }
+
+  function resetInMemoryState() {
+    names = [];
+    expenses = [];
+    uidCounter = 0;
+    if (view) {
+      view.dom.roommateInputs.innerHTML = '';
+    }
   }
 
   function refreshApp() {
@@ -110,6 +119,7 @@
     }
     names = raw;
     initAppScreen();
+    saveState();
   }
 
   function initAppScreen() {
@@ -117,22 +127,6 @@
     view.renderMembers(names);
     view.renderSplitControls(names);
     refreshApp();
-  }
-
-  function restoreSession() {
-    try {
-      const result = storage.load();
-      if (!result.found) return;
-      names = result.state.names;
-      expenses = result.state.expenses;
-      view.dom.restoreBanner.classList.remove('show');
-      initAppScreen();
-    } catch (e) {}
-  }
-
-  function dismissRestore() {
-    storage.clear();
-    view.dom.restoreBanner.classList.remove('show');
   }
 
   function addExpense() {
@@ -194,11 +188,16 @@
     }
   }
 
-  function resetApp() {
+  async function resetApp() {
     if (!confirm('Reset everything and change members?')) return;
     expenses = [];
     names = [];
-    storage.clear();
+    try {
+      await storage.clear();
+      view.flashSaved();
+    } catch (e) {
+      view.flashSaveError();
+    }
     view.showSetup();
     view.dom.roommateInputs.innerHTML = '';
     uidCounter = 0;
@@ -227,14 +226,105 @@
     view.dom.addPersonBtn.addEventListener('click', () => addPersonInput());
     view.dom.clearAllBtn.addEventListener('click', clearAll);
     view.dom.csvBtn.addEventListener('click', downloadCSV);
-    view.dom.dismissRestoreBtn.addEventListener('click', dismissRestore);
     view.dom.resetBtn.addEventListener('click', resetApp);
-    view.dom.restoreBtn.addEventListener('click', restoreSession);
     view.dom.splitType.addEventListener('change', () => view.setSplitTypeVisibility(view.dom.splitType.value));
     view.dom.startBtn.addEventListener('click', startApp);
+    view.dom.googleSignInBtn.addEventListener('click', signIn);
+    view.dom.signOutBtn.addEventListener('click', signOut);
   }
 
-  function boot() {
+  function waitForFirebase() {
+    if (root.FairShareFirebase) return Promise.resolve(root.FairShareFirebase);
+    if (root.FairShareFirebaseError) return Promise.reject(root.FairShareFirebaseError);
+    return new Promise((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('Firebase did not load.')), 10000);
+      root.addEventListener('fairshare:firebase-ready', () => {
+        clearTimeout(timer);
+        resolve(root.FairShareFirebase);
+      }, { once: true });
+      root.addEventListener('fairshare:firebase-error', event => {
+        clearTimeout(timer);
+        reject(event.detail || new Error('Firebase did not load.'));
+      }, { once: true });
+    });
+  }
+
+  function formatFirebaseError(error, fallback) {
+    const code = error && error.code ? error.code : '';
+    if (code === 'auth/unauthorized-domain') {
+      return 'This domain is not authorized in Firebase Auth. Add localhost in Authentication settings.';
+    }
+    if (code === 'auth/operation-not-allowed') {
+      return 'Google sign-in is not enabled in Firebase Authentication.';
+    }
+    if (code === 'auth/popup-closed-by-user') {
+      return 'Google sign-in popup closed before completion.';
+    }
+    if (code === 'auth/invalid-api-key') {
+      return 'Firebase web config has an invalid API key.';
+    }
+    if (code === 'unavailable') {
+      return 'Firestore is unavailable. Create/enable Cloud Firestore for this Firebase project and check your network.';
+    }
+    if (code === 'not-found') {
+      return 'Firestore database was not found. Create a Cloud Firestore database for this Firebase project.';
+    }
+    if (code === 'permission-denied') {
+      return 'Firestore rules blocked this request. Check your published rules in Firebase Console.';
+    }
+    if (code) {
+      return `${fallback} (${code})`;
+    }
+    return error && error.message ? error.message : fallback;
+  }
+
+  async function signIn() {
+    view.dom.googleSignInBtn.disabled = true;
+    view.dom.authStatus.textContent = 'Opening Google sign-in...';
+    try {
+      await firebase.signInWithGoogle();
+    } catch (e) {
+      view.showSignedOut(formatFirebaseError(e, 'Google sign-in was not completed.'));
+    } finally {
+      view.dom.googleSignInBtn.disabled = false;
+    }
+  }
+
+  async function signOut() {
+    try {
+      await firebase.signOutUser();
+    } catch (e) {
+      view.flashSaveError();
+    }
+  }
+
+  async function handleSignedIn(user) {
+    storage = root.FairShareStorage.createFirestoreStorage(firebase, core.normalizeLegacyEqualSplits);
+    view.showAccount(firebase.getUserLabel(user));
+    resetInMemoryState();
+
+    try {
+      const result = await storage.load();
+      if (result.found) {
+        names = result.state.names;
+        expenses = result.state.expenses;
+        initAppScreen();
+      } else {
+        view.showSetup();
+        addDefaultPeople();
+      }
+    } catch (e) {
+      view.showSignedOut(formatFirebaseError(e, 'Could not load your Firestore session. Check your Firebase config and rules.'));
+    }
+  }
+
+  function handleSignedOut() {
+    storage = null;
+    resetInMemoryState();
+    view.showSignedOut();
+  }
+
+  async function boot() {
     view = root.FairShareDom.createView({
       config,
       core,
@@ -244,11 +334,17 @@
     view.applyStaticSymbols();
     bindEvents();
     view.dom.warnMsg.textContent = config.emptyText;
+    view.showAuthLoading();
 
-    if (storage.hasRestorableSession()) {
-      view.dom.restoreBanner.classList.add('show');
+    try {
+      firebase = await waitForFirebase();
+      firebase.onAuthStateChanged(user => {
+        if (user) handleSignedIn(user);
+        else handleSignedOut();
+      });
+    } catch (e) {
+      view.showSignedOut(formatFirebaseError(e, 'Firebase could not load. Check your network and Firebase config.'));
     }
-    addDefaultPeople();
   }
 
   document.addEventListener('DOMContentLoaded', boot);
