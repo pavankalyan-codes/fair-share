@@ -1,7 +1,7 @@
 (function initApp(root) {
-  const config = root.FairShareConfig;
-  const core = root.FairShareCore;
-  const csv = root.FairShareCsv;
+  const config = root.ZettlupConfig;
+  const core = root.ZettlupCore;
+  const csv = root.ZettlupCsv;
 
   let names = [];
   let expenses = [];
@@ -234,15 +234,15 @@
   }
 
   function waitForFirebase() {
-    if (root.FairShareFirebase) return Promise.resolve(root.FairShareFirebase);
-    if (root.FairShareFirebaseError) return Promise.reject(root.FairShareFirebaseError);
+    if (root.ZettlupFirebase) return Promise.resolve(root.ZettlupFirebase);
+    if (root.ZettlupFirebaseError) return Promise.reject(root.ZettlupFirebaseError);
     return new Promise((resolve, reject) => {
       const timer = setTimeout(() => reject(new Error('Firebase did not load.')), 10000);
-      root.addEventListener('fairshare:firebase-ready', () => {
+      root.addEventListener('zettlup:firebase-ready', () => {
         clearTimeout(timer);
-        resolve(root.FairShareFirebase);
+        resolve(root.ZettlupFirebase);
       }, { once: true });
-      root.addEventListener('fairshare:firebase-error', event => {
+      root.addEventListener('zettlup:firebase-error', event => {
         clearTimeout(timer);
         reject(event.detail || new Error('Firebase did not load.'));
       }, { once: true });
@@ -299,7 +299,7 @@
   }
 
   async function handleSignedIn(user) {
-    storage = root.FairShareStorage.createFirestoreStorage(firebase, core.normalizeLegacyEqualSplits);
+    storage = root.ZettlupStorage.createFirestoreStorage(firebase, core.normalizeLegacyEqualSplits);
     view.showAccount(firebase.getUserLabel(user));
     resetInMemoryState();
 
@@ -325,7 +325,7 @@
   }
 
   async function boot() {
-    view = root.FairShareDom.createView({
+    view = root.ZettlupDom.createView({
       config,
       core,
       documentRef: document,

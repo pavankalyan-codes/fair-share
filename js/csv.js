@@ -28,7 +28,7 @@
       : [['-', '-', 'All settled']];
 
     return [
-      `FairShare Export - ${new Date().toLocaleDateString()}`,
+      `zettlup Export - ${new Date().toLocaleDateString()}`,
       `Members: ${names.join(', ')}`,
       '',
       '--- EXPENSES ---',
@@ -51,10 +51,10 @@
     const url = urlApi.createObjectURL(blob);
     const a = documentRef.createElement('a');
     a.href = url;
-    a.download = `fairshare-${new Date().toISOString().slice(0, 10)}.csv`;
+    a.download = `zettlup-${new Date().toISOString().slice(0, 10)}.csv`;
     a.click();
     urlApi.revokeObjectURL(url);
   }
 
-  root.FairShareCsv = { buildCsvLines, csvCell, downloadCsv };
+  root.ZettlupCsv = { buildCsvLines, csvCell, downloadCsv };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

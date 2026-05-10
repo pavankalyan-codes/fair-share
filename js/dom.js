@@ -113,7 +113,7 @@
       documentRef.body.classList.add('signed-in');
       documentRef.body.classList.remove('signed-out', 'auth-loading');
       dom.setupScreen.style.display = 'block';
-      dom.headerSub.textContent = 'ROOM EDITION';
+      dom.headerSub.textContent = 'Because "I\'ll pay you later" never works.';
     }
 
     function showApp(names) {
@@ -121,15 +121,16 @@
       documentRef.body.classList.add('signed-in');
       documentRef.body.classList.remove('signed-out', 'auth-loading');
       dom.setupScreen.style.display = 'none';
-      dom.headerSub.textContent = `ROOM EDITION ${symbols.separator} ${names.length} PEOPLE`;
+      dom.headerSub.textContent = `${names.length} PEOPLE`;
     }
 
     function showSignedOut(message) {
       documentRef.body.classList.remove('app-active', 'signed-in', 'auth-loading');
       documentRef.body.classList.add('signed-out');
       dom.setupScreen.style.display = 'none';
-      dom.headerSub.textContent = 'ROOM EDITION';
+      dom.headerSub.textContent = 'Because "I\'ll pay you later" never works.';
       dom.accountBar.hidden = true;
+      dom.accountName.textContent = '';
       dom.googleSignInBtn.disabled = false;
       dom.authStatus.textContent = message || emptyText;
     }
@@ -138,7 +139,7 @@
       documentRef.body.classList.remove('app-active', 'signed-in', 'signed-out');
       documentRef.body.classList.add('auth-loading');
       dom.setupScreen.style.display = 'none';
-      dom.headerSub.textContent = 'ROOM EDITION';
+      dom.headerSub.textContent = 'Because "I\'ll pay you later" never works.';
       dom.accountBar.hidden = true;
       dom.googleSignInBtn.disabled = true;
       dom.authStatus.textContent = message || 'Checking sign-in...';
@@ -267,5 +268,5 @@
     };
   }
 
-  root.FairShareDom = { createView, esc };
+  root.ZettlupDom = { createView, esc };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

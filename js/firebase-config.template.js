@@ -1,5 +1,5 @@
 (function initFirebaseConfig(root) {
-  root.FairShareFirebaseConfig = {
+  root.ZettlupFirebaseConfig = {
     apiKey: '__FIREBASE_API_KEY__',
     appId: '__FIREBASE_APP_ID__',
     authDomain: '__FIREBASE_AUTH_DOMAIN__',

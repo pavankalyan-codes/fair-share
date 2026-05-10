@@ -15,15 +15,15 @@ import {
   setDoc,
 } from 'https://www.gstatic.com/firebasejs/12.7.0/firebase-firestore.js';
 
-const config = window.FairShareFirebaseConfig;
+const config = window.ZettlupFirebaseConfig;
 const placeholderValues = Object.values(config || {}).filter(value => {
   return typeof value === 'string' && value.includes('YOUR_FIREBASE_');
 });
 
 function failFirebaseLoad(message) {
   const error = new Error(message);
-  window.FairShareFirebaseError = error;
-  window.dispatchEvent(new CustomEvent('fairshare:firebase-error', { detail: error }));
+  window.ZettlupFirebaseError = error;
+  window.dispatchEvent(new CustomEvent('zettlup:firebase-error', { detail: error }));
   throw error;
 }
 
@@ -42,8 +42,8 @@ function currentUser() {
 
 function sessionRef() {
   const user = currentUser();
-  if (!user) throw new Error('Sign in before accessing FairShare data.');
-  return doc(db, 'users', user.uid, 'fairshare', 'session');
+  if (!user) throw new Error('Sign in before accessing zettlup data.');
+  return doc(db, 'users', user.uid, 'zettlup', 'session');
 }
 
 async function loadSession() {
@@ -68,7 +68,7 @@ function getUserLabel(user) {
   return user.displayName || user.email || 'Signed in';
 }
 
-window.FairShareFirebase = {
+window.ZettlupFirebase = {
   clearSession,
   currentUser,
   getUserLabel,
@@ -79,4 +79,4 @@ window.FairShareFirebase = {
   signOutUser: () => signOut(auth),
 };
 
-window.dispatchEvent(new Event('fairshare:firebase-ready'));
+window.dispatchEvent(new Event('zettlup:firebase-ready'));

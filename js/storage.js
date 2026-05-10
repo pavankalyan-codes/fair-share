@@ -85,5 +85,5 @@
     return { clear, hasRestorableSession, load, save };
   }
 
-  root.FairShareStorage = { createFirestoreStorage, createStorage };
+  root.ZettlupStorage = { createFirestoreStorage, createStorage };
 })(typeof globalThis !== 'undefined' ? globalThis : window);

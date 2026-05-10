@@ -3,7 +3,7 @@
   if (typeof module === 'object' && module.exports) {
     module.exports = core;
   }
-  root.FairShareCore = core;
+  root.ZettlupCore = core;
 })(typeof globalThis !== 'undefined' ? globalThis : window, function createCore() {
   function toCents(amount) {
     return Math.round(Number(amount) * 100);

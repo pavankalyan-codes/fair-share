@@ -1,16 +1,16 @@
-# FairShare - Room Edition
+# zettlup - Because "I'll pay you later" never works.
 
-FairShare is a roommate expense splitter for tracking shared costs, calculating exact cents, and exporting settlement reports. It uses Google sign-in and saves each user's private session to Cloud Firestore.
+zettlup is a roommate expense splitter for tracking shared costs, calculating exact cents, and exporting settlement reports. It uses Google sign-in and saves each user's private session to Cloud Firestore.
 
 [Live Demo](https://pavankalyan-codes.github.io/fair-share) · [Source Code](https://github.com/pavankalyan-codes/fair-share)
 
-![FairShare preview](assets/fairshare-preview.png)
+![zettlup preview](assets/fairshare-preview.png)
 
 ---
 
 ## Why I Built This
 
-Splitting roommate expenses sounds simple until the group has a mix of rent, utilities, groceries, personal items, partial participants, and rounding edge cases. I built FairShare to make that workflow transparent: add expenses, choose how each bill is split, and see exactly who owes whom.
+Splitting roommate expenses sounds simple until the group has a mix of rent, utilities, groceries, personal items, partial participants, and rounding edge cases. I built zettlup to make that workflow transparent: add expenses, choose how each bill is split, and see exactly who owes whom.
 
 The project is intentionally small and static. It runs as HTML/CSS/JS, authenticates with Firebase Authentication, stores data in Firestore, and exports CSV reports that can be opened in Excel or Google Sheets.
 

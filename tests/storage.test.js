@@ -27,7 +27,7 @@ function createMockService(initialSession = null) {
 
 test('saves Firestore session state through the injected Firebase service', async () => {
   const service = createMockService();
-  const storage = globalThis.FairShareStorage.createFirestoreStorage(service, () => false);
+  const storage = globalThis.ZettlupStorage.createFirestoreStorage(service, () => false);
   const state = {
     expenses: [{ amount: 12, desc: 'Lunch', payer: 0, splits: { 0: 6, 1: 6 } }],
     names: ['Ava', 'Ben'],
@@ -42,7 +42,7 @@ test('saves Firestore session state through the injected Firebase service', asyn
 test('loads valid Firestore session data', async () => {
   const session = { expenses: [], names: ['Ava', 'Ben'] };
   const service = createMockService(session);
-  const storage = globalThis.FairShareStorage.createFirestoreStorage(service, () => false);
+  const storage = globalThis.ZettlupStorage.createFirestoreStorage(service, () => false);
 
   assert.deepEqual(await storage.load(), {
     found: true,
@@ -53,7 +53,7 @@ test('loads valid Firestore session data', async () => {
 
 test('ignores missing or incomplete Firestore session data', async () => {
   const service = createMockService({ expenses: [], names: ['Ava'] });
-  const storage = globalThis.FairShareStorage.createFirestoreStorage(service, () => false);
+  const storage = globalThis.ZettlupStorage.createFirestoreStorage(service, () => false);
 
   assert.deepEqual(await storage.load(), { found: false });
 });
@@ -61,7 +61,7 @@ test('ignores missing or incomplete Firestore session data', async () => {
 test('persists normalized legacy data after loading from Firestore', async () => {
   const session = { expenses: [{ amount: 9, payer: 0, splits: { 0: 4.51, 1: 4.49 } }], names: ['Ava', 'Ben'] };
   const service = createMockService(session);
-  const storage = globalThis.FairShareStorage.createFirestoreStorage(service, (names, expenses) => {
+  const storage = globalThis.ZettlupStorage.createFirestoreStorage(service, (names, expenses) => {
     expenses[0].splits = { 0: 4.5, 1: 4.5 };
     return true;
   });

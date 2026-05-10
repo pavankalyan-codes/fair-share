@@ -1,5 +1,5 @@
 {
-  "name": "fairshare-room-edition",
+  "name": "zettlup-room-edition",
   "version": "1.0.0",
   "description": "A Firebase-backed roommate expense splitter built with vanilla HTML, CSS, and JavaScript.",
   "private": true,

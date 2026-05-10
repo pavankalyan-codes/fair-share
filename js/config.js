@@ -1,5 +1,5 @@
 (function initConfig(root) {
-  root.FairShareConfig = {
+  root.ZettlupConfig = {
     emptyText: '\u00a0',
     palette: [
       { bg: '#e8e0f0', fg: '#6a3ab0' },
@@ -13,13 +13,14 @@
       { bg: '#e0e8ff', fg: '#2a3ab0' },
       { bg: '#f0e8f8', fg: '#8a2ab0' },
     ],
-    storageKey: 'fairshare_v1',
+    storageKey: 'zettlup_v1',
     symbols: {
       arrowRight: '\u2192',
       check: '\u2713',
       close: '\u00d7',
       lightning: '\u26a1',
       minus: '\u2212',
+      money: '\ud83d\udcb8',
       receipt: '\ud83e\uddfe',
       reset: '\u21ba',
       save: '\ud83d\udcbe',
