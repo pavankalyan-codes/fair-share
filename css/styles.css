@@ -19,6 +19,7 @@ header h1 span { color: var(--accent); font-style: italic; }
 header p { font-size: 0.75rem; color: #9999b8; margin-top: 2px; font-family: 'DM Mono', monospace; letter-spacing: 0.05em; }
 .brand-lockup { text-align: center; }
 .account-bar { position: absolute; right: 20px; display: flex; align-items: center; gap: 10px; max-width: min(42vw, 360px); }
+.account-bar[hidden] { display: none; }
 .account-bar span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: #d8d8ea; font-size: 0.8rem; }
 .account-btn { background: transparent; color: var(--paper); border: 1px solid rgba(255, 255, 255, 0.22); border-radius: 8px; padding: 7px 10px; font-family: 'DM Sans', sans-serif; font-size: 0.78rem; font-weight: 600; cursor: pointer; white-space: nowrap; }
 .account-btn:hover { border-color: rgba(255, 255, 255, 0.45); }
