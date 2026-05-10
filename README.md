@@ -2,7 +2,7 @@
 
 FairShare is a roommate expense splitter for tracking shared costs, calculating exact cents, and exporting settlement reports. It uses Google sign-in and saves each user's private session to Cloud Firestore.
 
-[Live Demo](https://pavankalyan-codes.github.io/fairshare) · [Source Code](https://github.com/pavankalyan-codes/fairshare)
+[Live Demo](https://pavankalyan-codes.github.io/fair-share) · [Source Code](https://github.com/pavankalyan-codes/fair-share)
 
 ![FairShare preview](assets/fairshare-preview.png)
 
@@ -222,39 +222,6 @@ Users must sign in with Google. Each account's FairShare data is stored at `user
 
 ---
 
-## Suggested Commit Milestones
-
-```bash
-git add index.html css js
-git commit -m "refactor: split app into structured modules"
-
-git add tests package.json
-git commit -m "test: add fixture-backed core logic tests"
-
-git add README.md LICENSE .gitignore assets
-git commit -m "docs: polish project for showcase"
-```
-
----
-
-## LinkedIn Post Draft
-
-I built **FairShare**, a roommate expense splitter with Google sign-in and cloud-saved sessions.
-
-It supports equal splits, custom shares, selected participants, live settlement instructions, Firestore session restore, and CSV export for Excel or Google Sheets.
-
-Engineering highlights:
-
-- vanilla HTML/CSS/JS with no framework or build step
-- Firebase Authentication and Cloud Firestore for private per-user data
-- modular architecture with pure core money logic
-- cent-safe calculations for awkward split amounts
-- fixture-backed unit tests using real exported CSV data
-- security rules that isolate each user's saved session
-
-I built this to make shared expenses transparent and easy to settle.
-
----
 
 ## License
 
