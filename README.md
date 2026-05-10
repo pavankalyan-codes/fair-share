@@ -70,6 +70,19 @@ GitHub Pages build setup:
 3. Open **Settings** -> **Pages** and set **Source** to **GitHub Actions**.
 4. Push to `main` or run the **Deploy GitHub Pages** workflow manually.
 
+Netlify build setup:
+
+1. Connect the repository in Netlify.
+2. Netlify will read `netlify.toml` and run `npm run build:pages`.
+3. Set these environment variables in **Site configuration** -> **Environment variables**:
+   - `FIREBASE_API_KEY`
+   - `FIREBASE_APP_ID`
+   - `FIREBASE_AUTH_DOMAIN`
+   - `FIREBASE_MESSAGING_SENDER_ID`
+   - `FIREBASE_PROJECT_ID`
+   - `FIREBASE_STORAGE_BUCKET`
+4. Add your Netlify domain in Firebase **Authentication** -> **Settings** -> **Authorized domains**.
+
 Optional Admin SDK setup for trusted server scripts:
 
 1. Install dependencies with `npm install`.
@@ -92,6 +105,7 @@ Then host it with GitHub Pages:
 ```text
 fairshare/
 |-- index.html
+|-- netlify.toml
 |-- .github/
 |   `-- workflows/
 |       `-- pages.yml
