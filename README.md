@@ -174,38 +174,6 @@ All data is stored locally in your browser using `localStorage`. Nothing is sent
 
 ---
 
-## Suggested Commit Milestones
-
-```bash
-git add index.html css js
-git commit -m "refactor: split app into structured modules"
-
-git add tests package.json
-git commit -m "test: add fixture-backed core logic tests"
-
-git add README.md LICENSE .gitignore assets
-git commit -m "docs: polish project for showcase"
-```
-
----
-
-## LinkedIn Post Draft
-
-I built **FairShare**, a local-first roommate expense splitter that runs entirely in the browser.
-
-It supports equal splits, custom shares, selected participants, live settlement instructions, session restore with `localStorage`, and CSV export for Excel or Google Sheets.
-
-Engineering highlights:
-
-- vanilla HTML/CSS/JS with no framework or backend
-- modular architecture with pure core money logic
-- cent-safe calculations for awkward split amounts
-- fixture-backed unit tests using real exported CSV data
-- privacy-first: no login, no server, no account required
-
-I built this to make shared expenses transparent and easy to settle.
-
----
 
 ## License
 
