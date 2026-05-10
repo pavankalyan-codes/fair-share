@@ -2,7 +2,7 @@
 
 FairShare is a local-first roommate expense splitter for tracking shared costs, calculating exact cents, and exporting settlement reports without accounts, servers, or setup.
 
-[Live Demo](https://pavankalyan-codes.github.io/fairshare) · [Source Code](https://github.com/pavankalyan-codes/fairshare)
+[Live Demo](https://pavankalyan-codes.github.io/fair-share) · [Source Code](https://github.com/pavankalyan-codes/fair-share)
 
 ![FairShare preview](assets/fairshare-preview.png)
 
